@@ -1,0 +1,8 @@
+{
+  "name": "Remix World\u0027s Worst Website",
+  "description": "A Guinness World Record contender for the most chaotic UX, featuring Bangladesh Viral News satire, Agony Gamification quests, and direct review delivery to Gmail.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
