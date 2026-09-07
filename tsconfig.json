@@ -1,4 +1,10 @@
 {
+  "ts-node": {
+    "skipProject": true
+  },
+  "typeAcquisition": {
+    "exclude": ["serve-static"]
+  },
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
