@@ -72,7 +72,7 @@ export const GuinnessCertificate: React.FC<GuinnessCertificateProps> = ({
                 🎨 Design by <span className="text-red-900 font-black underline">Yasir Abed Rabbu</span>
               </span>
               <span className="bg-yellow-300/80 px-2.5 py-0.5 border border-yellow-700 rounded shadow-xs">
-                💻 Developed by <span className="text-purple-900 font-black underline">Yasir</span>
+                💻 Developed by <span className="text-purple-900 font-black underline">Yasir Abed Rabbu</span>
               </span>
             </div>
           </div>
