@@ -144,7 +144,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Navigation
-  const [currentPage, setCurrentPage] = useState<PageType>('halftone');
+  const [currentPage, setCurrentPage] = useState<PageType>('home');
 
   // Warning Modal, Feedback/Review Modal, Gamification, Horror Sound
   const [showWarningModal, setShowWarningModal] = useState<boolean>(true);
@@ -367,7 +367,7 @@ export default function App() {
   const handleNavigation = (page: PageType) => {
     presenceManager.setPage(page);
     if (chaosMode && Math.random() < 0.3) {
-      const allPages: PageType[] = ['home', 'halftone', 'pinterest', 'shop', 'support', 'unsubscribe', 'records'];
+      const allPages: PageType[] = ['home', 'pinterest', 'shop', 'support', 'unsubscribe', 'records'];
       const otherPages = allPages.filter((p) => p !== page);
       const inverted = otherPages[Math.floor(Math.random() * otherPages.length)];
       playSound('honk');
@@ -453,7 +453,6 @@ export default function App() {
           currentPage={currentPage}
           onNavigate={handleNavigation}
           onDialUp={() => addRage(5)}
-          onTriggerLoading={() => setIsLoading(true)}
           onOpenWarning={() => setShowWarningModal(true)}
           onOpenFeedback={() => setShowFeedbackModal(true)}
           onOpenGamification={() => setShowGamificationModal(true)}

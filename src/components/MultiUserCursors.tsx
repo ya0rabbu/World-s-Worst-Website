@@ -1,222 +1,183 @@
 import React, { useEffect, useState } from 'react';
-import { MousePointer2, Users } from 'lucide-react';
+import { MousePointer2, Users, ExternalLink, Smile } from 'lucide-react';
+import { presenceManager, RemoteUser, PresenceState } from '../utils/presenceClient';
+import { playSound } from '../utils/audioSynth';
 
-interface SimulatedUser {
-  id: string;
-  name: string;
-  country: string;
-  flag: string;
-  color: string;
-  x: number;
-  y: number;
-  targetX: number;
-  targetY: number;
-  speed: number;
-  lastClickTime: number;
-  clicking: boolean;
-  message?: string;
-}
-
-const INITIAL_USERS: SimulatedUser[] = [
-  {
-    id: 'user-yasir',
-    name: 'Yasir (Architect)',
-    country: 'Dhaka, BD',
-    flag: '🇧🇩',
-    color: '#FACC15', // Yellow
-    x: 200,
-    y: 350,
-    targetX: 400,
-    targetY: 500,
-    speed: 0.04,
-    lastClickTime: 0,
-    clicking: false,
-    message: 'Inspecting UI/UX 🎨',
-  },
-  {
-    id: 'user-tanvir',
-    name: 'Tanvir (Victim)',
-    country: 'Mirpur, BD',
-    flag: '🇧🇩',
-    color: '#4ADE80', // Green
-    x: 600,
-    y: 200,
-    targetX: 300,
-    targetY: 600,
-    speed: 0.035,
-    lastClickTime: 0,
-    clicking: false,
-  },
-  {
-    id: 'user-kenji',
-    name: 'Kenji',
-    country: 'Tokyo, JP',
-    flag: '🇯🇵',
-    color: '#22D3EE', // Cyan
-    x: 800,
-    y: 400,
-    targetX: 700,
-    targetY: 250,
-    speed: 0.03,
-    lastClickTime: 0,
-    clicking: false,
-  },
-  {
-    id: 'user-sarah',
-    name: 'Sarah UX',
-    country: 'NYC, US',
-    flag: '🇺🇸',
-    color: '#F472B6', // Pink
-    x: 450,
-    y: 700,
-    targetX: 850,
-    targetY: 450,
-    speed: 0.045,
-    lastClickTime: 0,
-    clicking: false,
-  },
-  {
-    id: 'user-emma',
-    name: 'Emma Dev',
-    country: 'London, UK',
-    flag: '🇬🇧',
-    color: '#A78BFA', // Purple
-    x: 300,
-    y: 500,
-    targetX: 500,
-    targetY: 300,
-    speed: 0.032,
-    lastClickTime: 0,
-    clicking: false,
-  },
-];
-
-interface MultiUserCursorsProps {
-  enabled?: boolean;
-}
-
-export const MultiUserCursors: React.FC<MultiUserCursorsProps> = ({ enabled = true }) => {
-  const [users, setUsers] = useState<SimulatedUser[]>(INITIAL_USERS);
-  const [isVisible, setIsVisible] = useState(enabled);
+export const MultiUserCursors: React.FC = () => {
+  const [presence, setPresence] = useState<PresenceState>(presenceManager.getState());
+  const [showEmojiBar, setShowEmojiBar] = useState<boolean>(false);
+  const [localBlast, setLocalBlast] = useState<{ x: number; y: number; emoji: string } | null>(null);
 
   useEffect(() => {
-    if (!isVisible) return;
+    const unsubscribe = presenceManager.subscribe((newState) => {
+      setPresence(newState);
+    });
+    return () => unsubscribe();
+  }, []);
 
-    const interval = setInterval(() => {
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => {
-          // Move towards target
-          let dx = u.targetX - u.x;
-          let dy = u.targetY - u.y;
-          let dist = Math.sqrt(dx * dx + dy * dy);
+  const remoteUsersList = Array.from(presence.remoteUsers.values());
 
-          let newTargetX = u.targetX;
-          let newTargetY = u.targetY;
-          let clicking = false;
+  const handleEmojiBlast = (emoji: string) => {
+    playSound('beep');
+    presenceManager.blastEmoji(emoji);
+    setLocalBlast({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      emoji,
+    });
+    setTimeout(() => setLocalBlast(null), 1500);
+  };
 
-          // If reached target, pick a new target within viewport
-          if (dist < 20 || Math.random() < 0.02) {
-            const maxX = Math.max(320, window.innerWidth - 80);
-            const maxY = Math.max(480, window.innerHeight - 80);
-            newTargetX = Math.floor(Math.random() * maxX) + 40;
-            newTargetY = Math.floor(Math.random() * maxY) + 40;
-            clicking = Math.random() < 0.4;
-          }
-
-          const newX = u.x + (newTargetX - u.x) * u.speed;
-          const newY = u.y + (newTargetY - u.y) * u.speed;
-
-          return {
-            ...u,
-            x: newX,
-            y: newY,
-            targetX: newTargetX,
-            targetY: newTargetY,
-            clicking,
-          };
-        })
-      );
-    }, 45);
-
-    return () => clearInterval(interval);
-  }, [isVisible]);
-
-  if (!isVisible) {
-    return (
-      <button
-        onClick={() => setIsVisible(true)}
-        className="fixed bottom-3 left-3 z-[9995] bg-black/80 hover:bg-black text-white text-[10px] font-mono border border-lime-400 px-2 py-1 flex items-center gap-1 shadow-[2px_2px_0px_#000] cursor-pointer"
-        title="Show multi-user live cursors"
-      >
-        <Users className="w-3 h-3 text-lime-400" />
-        <span>Live Cursors: Off</span>
-      </button>
-    );
-  }
+  const handleOpenSecondTab = () => {
+    playSound('coin');
+    window.open(window.location.href, '_blank');
+  };
 
   return (
-    <>
-      {/* Floating Toggle in corner */}
-      <button
-        onClick={() => setIsVisible(false)}
-        className="fixed bottom-3 left-3 z-[9995] bg-black/85 hover:bg-black text-lime-300 text-[10px] font-mono border-2 border-lime-400 px-2.5 py-1 flex items-center gap-1.5 shadow-[3px_3px_0px_#000] cursor-pointer select-none"
-        title="Hide simulated multi-user cursors"
-      >
-        <span className="w-2 h-2 rounded-full bg-lime-400 animate-ping inline-block" />
-        <Users className="w-3 h-3 text-lime-400" />
-        <span>{users.length} Live Cursors Active</span>
-      </button>
+    <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
+      {/* Real Live Remote Users' Cursors (Only renders when real users are connected) */}
+      {remoteUsersList.map((user) => {
+        const posX = user.xRatio * (typeof window !== 'undefined' ? window.innerWidth : 1000);
+        const posY = user.yRatio * (typeof window !== 'undefined' ? window.innerHeight : 800);
 
-      {/* Simulated Ghost Cursors Overlay */}
-      <div className="fixed inset-0 pointer-events-none z-[9990] overflow-hidden select-none">
-        {users.map((user) => (
+        return (
           <div
             key={user.id}
+            className="absolute transition-all duration-75 ease-out flex flex-col items-start select-none"
             style={{
-              transform: `translate3d(${user.x}px, ${user.y}px, 0)`,
-              transition: 'transform 0.06s linear',
+              left: `${posX}px`,
+              top: `${posY}px`,
+              transform: 'translate(-2px, -2px)',
             }}
-            className="absolute top-0 left-0 flex flex-col items-start will-change-transform"
           >
-            {/* Custom Colored Cursor Arrow */}
+            {/* Cursor SVG with User's Color */}
             <div className="relative">
               <MousePointer2
-                className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                className={`w-6 h-6 drop-shadow-md transition-transform ${
+                  user.clicking ? 'scale-75 translate-x-0.5 translate-y-0.5' : 'scale-100'
+                }`}
                 style={{
                   color: user.color,
                   fill: user.color,
-                  transform: user.clicking ? 'scale(0.85) rotate(-5deg)' : 'scale(1)',
-                  transition: 'transform 0.1s ease',
                 }}
               />
 
-              {/* Click ripple animation */}
+              {/* Click Ripple Indicator */}
               {user.clicking && (
-                <div
-                  className="absolute -top-1 -left-1 w-6 h-6 rounded-full border-2 animate-ping"
+                <span
+                  className="absolute -top-1 -left-1 w-8 h-8 rounded-full border-2 animate-ping pointer-events-none"
                   style={{ borderColor: user.color }}
                 />
               )}
             </div>
 
-            {/* User Label Badge */}
+            {/* Remote User Label Pill */}
             <div
-              className="mt-0.5 ml-3.5 px-2 py-0.5 text-[10px] font-mono font-bold text-black rounded-md flex items-center gap-1 shadow-[2px_2px_4px_rgba(0,0,0,0.5)] border border-black/40 whitespace-nowrap"
-              style={{ backgroundColor: user.color }}
+              className="mt-1 px-2 py-0.5 rounded text-[11px] font-bold font-mono tracking-tight text-black shadow-lg flex items-center gap-1.5 whitespace-nowrap"
+              style={{
+                backgroundColor: user.color,
+              }}
             >
-              <span>{user.flag}</span>
+              <span>{user.flag || '🇧🇩'}</span>
               <span>{user.name}</span>
+              {user.page && user.page !== 'home' && (
+                <span className="text-[9px] bg-black/20 px-1 rounded uppercase">
+                  {user.page}
+                </span>
+              )}
             </div>
 
-            {/* Optional Activity Message */}
-            {user.message && (
-              <div className="ml-3.5 mt-0.5 bg-black/90 text-white text-[9px] font-mono px-1.5 py-0.2 border border-white/20 rounded shadow-xs">
-                {user.message}
+            {/* Floating Emoji Reaction from this user */}
+            {user.emoji && (
+              <div className="mt-1 text-2xl animate-bounce drop-shadow-lg">
+                {user.emoji}
               </div>
             )}
           </div>
-        ))}
+        );
+      })}
+
+      {/* Local Emoji Blast Animation */}
+      {localBlast && (
+        <div
+          className="absolute text-4xl animate-bounce pointer-events-none select-none z-50 drop-shadow-xl"
+          style={{
+            left: `${localBlast.x}px`,
+            top: `${localBlast.y}px`,
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          {localBlast.emoji}
+        </div>
+      )}
+
+      {/* Floating Real-Time Presence Indicator & Tab Tester (Bottom-right corner) */}
+      <div className="fixed bottom-14 right-3 sm:bottom-4 sm:right-4 pointer-events-auto flex flex-col items-end gap-1.5 z-40">
+        {/* Floating Emoji Bar Toggle */}
+        <div className="flex items-center gap-1 bg-black/90 border border-yellow-400/80 p-1 rounded-full shadow-xl">
+          <button
+            type="button"
+            onClick={() => setShowEmojiBar(!showEmojiBar)}
+            className="w-7 h-7 rounded-full bg-yellow-400 hover:bg-yellow-300 text-black flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
+            title="React live to other users"
+          >
+            <Smile className="w-4 h-4" />
+          </button>
+
+          {showEmojiBar && (
+            <div className="flex items-center gap-1 px-1">
+              {['🔥', '🇧🇩', '😱', '💩', '💀', '🎉'].map((em) => (
+                <button
+                  key={em}
+                  type="button"
+                  onClick={() => handleEmojiBlast(em)}
+                  className="w-7 h-7 text-sm hover:scale-125 transition-transform flex items-center justify-center cursor-pointer"
+                  title={`Blast ${em}`}
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Real-time Status Card */}
+        <div className="bg-black/95 text-white border-2 border-yellow-400 p-2.5 rounded-xl shadow-2xl max-w-xs font-mono text-xs backdrop-blur-md">
+          <div className="flex items-center justify-between gap-2 border-b border-neutral-800 pb-1.5 mb-1.5">
+            <div className="flex items-center gap-1.5 font-black text-emerald-400 text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              <span>REAL-TIME MULTI-USER</span>
+            </div>
+            <span className="text-[10px] bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-300">
+              {presence.onlineCount} {presence.onlineCount === 1 ? 'Person' : 'People'}
+            </span>
+          </div>
+
+          <div className="text-[11px] text-neutral-300 mb-2 leading-tight">
+            {presence.remoteUsers.size === 0 ? (
+              <span>
+                You are currently the <strong className="text-yellow-400">only live visitor</strong>.
+                Open another tab to see real synchronized cursors!
+              </span>
+            ) : (
+              <span className="text-emerald-300">
+                ⚡ Connected with{' '}
+                <strong className="text-yellow-400">{presence.remoteUsers.size}</strong> other live peer
+                {presence.remoteUsers.size > 1 ? 's' : ''}! Look at their cursors moving in real-time.
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenSecondTab}
+            className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black py-1.5 px-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer text-[11px] shadow-md transition-all active:scale-95"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Open 2nd Tab to Test Live Cursors</span>
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 };

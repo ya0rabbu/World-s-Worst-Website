@@ -1,4 +1,4 @@
-export type PageType = 'home' | 'viral' | 'shop' | 'support' | 'unsubscribe' | 'records' | 'pinterest';
+export type PageType = 'home' | 'halftone' | 'viral' | 'shop' | 'support' | 'unsubscribe' | 'records' | 'pinterest';
 
 export interface PopupAd {
   id: string;

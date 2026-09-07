@@ -22,6 +22,8 @@ import {
   MessageSquare,
   Trophy,
   Newspaper,
+  Camera,
+  RotateCcw,
 } from 'lucide-react';
 
 interface MobileAppNavProps {
@@ -38,6 +40,7 @@ interface MobileAppNavProps {
   onTriggerWarning?: () => void;
   onTriggerFeedback?: () => void;
   onTriggerGamification?: () => void;
+  onTriggerLoading?: () => void;
   xp?: number;
 }
 
@@ -55,12 +58,14 @@ export const MobileAppNav: React.FC<MobileAppNavProps> = ({
   onTriggerWarning,
   onTriggerFeedback,
   onTriggerGamification,
+  onTriggerLoading,
   xp = 120,
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const tabs: { id: PageType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'home', label: 'Home', icon: Home },
+    { id: 'halftone', label: 'Halftone', icon: Camera },
     { id: 'viral', label: 'BD Viral', icon: Newspaper },
     { id: 'pinterest', label: 'Pinterest', icon: Pin },
     { id: 'shop', label: 'Store', icon: ShoppingCart },
@@ -223,6 +228,20 @@ export const MobileAppNav: React.FC<MobileAppNavProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
+                {onTriggerLoading && (
+                  <button
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      onTriggerLoading();
+                    }}
+                    className="p-3 bg-yellow-400 border-2 border-black rounded-xl flex flex-col items-center gap-1.5 cursor-pointer text-center active:scale-95 text-black shadow-md col-span-2"
+                  >
+                    <RotateCcw className="w-5 h-5 text-black animate-spin" />
+                    <span className="font-black text-xs">🔄 বুট লোডিং স্ক্রিন চালান (Loading Screen)</span>
+                    <span className="text-[10px] text-neutral-800">গিনেস ওয়ার্ল্ড রেকর্ডস বুটলোডার পুনরায় চালু করুন</span>
+                  </button>
+                )}
+
                 {onTriggerWarning && (
                   <button
                     onClick={() => {

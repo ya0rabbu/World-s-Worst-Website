@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageType } from '../types';
 import { playSound } from '../utils/audioSynth';
-import { Flame, ShoppingCart, Headset, UserX, Award, Home, Wifi, PhoneCall, Pin, AlertTriangle, MessageSquare, Trophy, Newspaper } from 'lucide-react';
+import { Flame, ShoppingCart, Headset, UserX, Award, Home, Wifi, PhoneCall, Pin, AlertTriangle, MessageSquare, Trophy, Newspaper, Camera, RotateCcw } from 'lucide-react';
 
 interface WorstNavProps {
   currentPage: PageType;
@@ -10,6 +10,7 @@ interface WorstNavProps {
   onOpenWarning?: () => void;
   onOpenFeedback?: () => void;
   onOpenGamification?: () => void;
+  onTriggerLoading?: () => void;
   xp?: number;
 }
 
@@ -38,6 +39,7 @@ export const WorstNav: React.FC<WorstNavProps> = ({
 
   const navItems: { id: PageType; label: string; icon: React.ReactNode; badSub: string }[] = [
     { id: 'home', label: '🏠 HOME (PAIN HUB)', icon: <Home className="w-3.5 h-3.5" />, badSub: 'Main Disasters' },
+    { id: 'halftone', label: '🎨 HALFTONE STUDIO', icon: <Camera className="w-3.5 h-3.5" />, badSub: 'Python & Dotted Art' },
     { id: 'viral', label: '🇧🇩 VIRAL NEWS BD', icon: <Newspaper className="w-3.5 h-3.5" />, badSub: 'Padma & Biryani' },
     { id: 'pinterest', label: '📌 CURSED PINTEREST', icon: <Pin className="w-3.5 h-3.5" />, badSub: 'Worst DIY & Food' },
     { id: 'shop', label: '🛒 SCAM STORE', icon: <ShoppingCart className="w-3.5 h-3.5" />, badSub: '150% Tip Required' },
@@ -45,6 +47,10 @@ export const WorstNav: React.FC<WorstNavProps> = ({
     { id: 'unsubscribe', label: '🛑 UNSUBSCRIBE MAZE', icon: <UserX className="w-3.5 h-3.5" />, badSub: 'You Cannot Leave' },
     { id: 'records', label: '🏆 GUINNESS HALL', icon: <Award className="w-3.5 h-3.5" />, badSub: 'All 10 Atrocities' },
   ];
+
+  function onTriggerLoading() {
+    onTriggerLoading?.();
+  }
 
   return (
     <nav className="bg-purple-950 border-b-4 border-black p-2 font-mono text-xs shadow-[4px_4px_0px_#000] select-none">
@@ -125,6 +131,21 @@ export const WorstNav: React.FC<WorstNavProps> = ({
             >
               <Trophy className="w-3 h-3 text-purple-950" />
               <span>{xp} XP</span>
+            </button>
+          )}
+
+          {onTriggerLoading && (
+
+            <button
+              onClick={() => {
+                playSound('beep');
+                onTriggerLoading();
+              }}
+              className="bg-yellow-400 hover:bg-yellow-300 text-black font-black px-2 py-1 border border-black shadow-[2px_2px_0px_#000] cursor-pointer flex items-center gap-1 text-[10px]"
+              title="Re-run Guinness Hostile Boot Loading Screen"
+            >
+              <RotateCcw className="w-3 h-3 text-black" />
+              <span>লোডিং স্ক্রিন</span>
             </button>
           )}
 
