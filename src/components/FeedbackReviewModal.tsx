@@ -137,12 +137,12 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
 
     playSound('win');
     setIsSending(true);
-    setEmailDeliveryNotice(`ইমেইল পাঠানো হচ্ছে: ${TARGET_GMAIL} ...`);
+    setEmailDeliveryNotice('ইমেইল পাঠানো হচ্ছে: ক্রিয়েটর ইনবক্স ...');
 
     let sentSuccess = false;
 
     try {
-      // Direct AJAX transmission to yasirabedrabbu@gmail.com via FormSubmit
+      // Direct AJAX transmission to creator inbox via FormSubmit
       const response = await fetch(`https://formsubmit.co/ajax/${TARGET_GMAIL}`, {
         method: 'POST',
         headers: {
@@ -157,7 +157,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
           Category_Tag: selectedTag,
           Victim_Feedback_Motamot: comment.trim(),
           Feature_Request: featureRequest.trim() || 'No feature request',
-          Target_Inbox: TARGET_GMAIL,
+          Target_Inbox: 'Yasir Abed Rabbu (Creator Inbox)',
           Submitted_At: new Date().toLocaleString('bn-BD'),
           _template: 'table',
           _captcha: 'false',
@@ -166,13 +166,13 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
 
       if (response.ok) {
         sentSuccess = true;
-        setEmailDeliveryNotice(`✅ আপনার মতামত সরাসরি ${TARGET_GMAIL} এ সফলভাবে পৌঁছেছে!`);
+        setEmailDeliveryNotice('✅ আপনার মতামত সরাসরি ক্রিয়েটরের সিকিউর ইনবক্সে সফলভাবে পৌঁছেছে!');
       } else {
-        setEmailDeliveryNotice(`✅ সংরক্ষিত এবং জিমেইল ব্যাকআপ সক্রিয়: ${TARGET_GMAIL}`);
+        setEmailDeliveryNotice('✅ সংরক্ষিত এবং ডেভেলপার ব্যাকআপ সফলভাবে সক্রিয়!');
       }
     } catch (err) {
       console.warn('Direct POST attempt finished; local backup active', err);
-      setEmailDeliveryNotice(`✅ আপনার মতামত স্থানীয় বোর্ডে ও মেইল ব্যাকআপে জমা হয়েছে (${TARGET_GMAIL})`);
+      setEmailDeliveryNotice('✅ আপনার মতামত স্থানীয় বোর্ডে ও ক্রিয়েটর ব্যাকআপে জমা হয়েছে!');
     } finally {
       setIsSending(false);
     }
@@ -221,7 +221,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
         <div className="flex items-center justify-between bg-yellow-400 text-black px-3 py-2 border-2 border-black font-mono font-black text-sm uppercase select-none">
           <div className="flex items-center gap-2">
             <Mail className="w-5 h-5 text-red-600 animate-pulse" />
-            <span>মতামত ও ফিচার রিকোয়েস্ট &bull; DIRECT TO GMAIL ({TARGET_GMAIL})</span>
+            <span>মতামত ও ফিচার রিকোয়েস্ট &bull; DIRECT CREATOR INBOX</span>
           </div>
           <button
             onClick={() => {
@@ -240,10 +240,10 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
           <div className="space-y-1 max-w-xl">
             <div className="flex items-center gap-2 text-yellow-300 font-black">
               <Mail className="w-4 h-4 text-red-400" />
-              <span>সরাসরি জিমেইলে পৌঁছাবে: {TARGET_GMAIL}</span>
+              <span>সরাসরি অফিসিয়াল ক্রিয়েটর ইনবক্সে পৌঁছাবে</span>
             </div>
             <p className="text-gray-300 text-[11px] leading-relaxed">
-              আপনার মতামত, রাগ বা নতুন ফিচারের বুদ্ধি সরাসরি সাইট ওনারের ইনবক্সে (<strong className="text-white underline">{TARGET_GMAIL}</strong>) ডেলিভার হবে। রিভিউ দিলেই পাবেন <span className="text-lime-400 font-black">+50 Agony XP</span>!
+              আপনার মতামত, রাগ বা নতুন ফিচারের বুদ্ধি সরাসরি সাইট ওনার ও লিড ডিজাইনারের সিক্রেট ইনবক্সে ডেলিভার হবে। রিভিউ দিলেই পাবেন <span className="text-lime-400 font-black">+50 Agony XP</span>!
             </p>
           </div>
           <a
@@ -251,10 +251,10 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className="bg-red-600 hover:bg-red-500 text-yellow-200 border-2 border-black px-3 py-1.5 font-mono text-[11px] font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000] cursor-pointer"
-            title="Open default email client to send to yasirabedrabbu@gmail.com"
+            title="Open default email client to send to Creator Inbox"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>জিমেইলে সরাসরি মেইল করুন</span>
+            <span>সরাসরি মেইল অ্যাপে পাঠান</span>
           </a>
         </div>
 
@@ -347,14 +347,14 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
           {/* Comment text */}
           <div className="space-y-1 font-mono text-xs">
             <label className="text-yellow-300 font-bold block">
-              আপনার মতামত ও প্রতিক্রিয়া (Send directly to {TARGET_GMAIL}):
+              আপনার মতামত ও প্রতিক্রিয়া (Send directly to Creator Inbox):
             </label>
             <textarea
               required
               rows={3}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="এখানে আপনার অভিজ্ঞতা লিখুন... কেমন লাগল এই চরম ফালতু UI? আপনার মতামত সরাসরি ইয়াসির আবেদ রাব্বুর জিমেইলে চলে যাবে।"
+              placeholder="এখানে আপনার অভিজ্ঞতা লিখুন... কেমন লাগল এই চরম ফালতু UI? আপনার মতামত সরাসরি ক্রিয়েটর ও ডেভেলপারের ইনবক্সে চলে যাবে।"
               className="w-full bg-[#160b29] border border-purple-500 p-2.5 text-yellow-100 placeholder-gray-500 focus:outline-none focus:border-yellow-400 text-xs"
             />
           </div>
@@ -384,12 +384,12 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
             {submittedSuccess ? (
               <div className="flex items-center gap-2 text-lime-400 text-xs font-bold font-mono animate-bounce">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>মতামত সফলভাবে জিমেইলে ({TARGET_GMAIL}) পাঠানো হয়েছে! (+50 XP)</span>
+                <span>মতামত সফলভাবে ক্রিয়েটর ইনবক্সে পাঠানো হয়েছে! (+50 XP)</span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-mono">
                 <Mail className="w-3.5 h-3.5 text-red-400" />
-                <span>প্রাপক: <span className="text-yellow-300 font-bold">{TARGET_GMAIL}</span></span>
+                <span>প্রাপক: <span className="text-yellow-300 font-bold">Official Creator Mailbox</span></span>
               </div>
             )}
 
@@ -415,7 +415,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                 ) : (
                   <>
                     <Send className="w-3.5 h-3.5" />
-                    <span>মতামত পাঠান ({TARGET_GMAIL})</span>
+                    <span>মতামত পাঠান (Send to Creator)</span>
                   </>
                 )}
               </button>
@@ -447,7 +447,7 @@ export const FeedbackReviewModal: React.FC<FeedbackReviewModalProps> = ({
                     </span>
                     {rev.sentToGmail && (
                       <span className="text-[9px] bg-lime-950 text-lime-400 border border-lime-800 px-1 py-0.2 flex items-center gap-0.5">
-                        <Mail className="w-2.5 h-2.5" /> Sent to {TARGET_GMAIL}
+                        <Mail className="w-2.5 h-2.5" /> Sent to Creator Inbox
                       </span>
                     )}
                   </div>

@@ -56,8 +56,8 @@ export const GamificationShowcaseSection: React.FC<GamificationShowcaseSectionPr
     },
     {
       id: 'q_rabbu_email',
-      titleBn: 'রাব্বুর জিমেইলে (yasirabedrabbu@gmail.com) মতামত পাঠানো',
-      titleEn: 'Submit Review directly to Yasir Abed Rabbu\'s Gmail',
+      titleBn: 'রাব্বুর অফিসিয়াল ইনবক্সে মতামত পাঠানো',
+      titleEn: 'Submit Review directly to Creator Inbox',
       xp: 50,
       rewardText: '+50 XP',
     },
@@ -337,7 +337,7 @@ export const GamificationShowcaseSection: React.FC<GamificationShowcaseSectionPr
       <div className="bg-purple-950/80 border border-purple-500 p-3 text-xs font-mono flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Mail className="w-4 h-4 text-red-400" />
-          <span>গেমিফিকেশনে নতুন ট্রফি বা লেভেল আইডিয়া আছে? সরাসরি ওনারকে জানান: <strong className="text-yellow-300 underline">{TARGET_GMAIL}</strong></span>
+          <span>গেমিফিকেশনে নতুন ট্রফি বা লেভেল আইডিয়া আছে? সরাসরি ওনারকে জানান: <strong className="text-yellow-300 underline">Official Developer Mailbox</strong></span>
         </div>
         <button
           onClick={() => {

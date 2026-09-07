@@ -1,5 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Dices, AlertTriangle, CheckCircle, HelpCircle, ShieldAlert } from 'lucide-react';
+import React, { useState, useId } from 'react';
+import {
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  User,
+  Phone,
+  Calendar,
+  Lock,
+  Eye,
+  EyeOff,
+  Fingerprint,
+  ArrowRight,
+  RefreshCw,
+  Award,
+  Globe,
+  Zap,
+} from 'lucide-react';
 import { playSound } from '../utils/audioSynth';
 
 interface WorstFormProps {
@@ -7,310 +24,591 @@ interface WorstFormProps {
   onSuccessSubmit: () => void;
 }
 
+interface CountryOption {
+  code: string;
+  name: string;
+  flag: string;
+  dial: string;
+}
+
+const COUNTRIES: CountryOption[] = [
+  { code: 'BD', name: 'Bangladesh', flag: '🇧🇩', dial: '+880' },
+  { code: 'US', name: 'United States', flag: '🇺🇸', dial: '+1' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵', dial: '+81' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', dial: '+44' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪', dial: '+49' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦', dial: '+1' },
+  { code: 'AE', name: 'UAE', flag: '🇦🇪', dial: '+971' },
+];
+
 export const WorstForm: React.FC<WorstFormProps> = ({ onFormAction, onSuccessSubmit }) => {
-  // Name state (auto-spongecased)
-  const [rawName, setRawName] = useState('');
+  const formId = useId();
 
-  // Phone number slider
-  const [phoneNumber, setPhoneNumber] = useState<number>(5551234567);
+  // Mode toggle: Creative UI/UX Masterpiece (Default) vs Nostalgic Chaos
+  const [designMode, setDesignMode] = useState<'creative' | 'retro'>('creative');
 
-  // Birthday slot machine
-  const [birthDay, setBirthDay] = useState(1);
-  const [birthMonth, setBirthMonth] = useState('Jan');
-  const [birthYear, setBirthYear] = useState(2000);
-  const [isSpinning, setIsSpinning] = useState(false);
+  // Multi-step form state
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Password state & validation rules
+  // Form Fields
+  const [fullName, setFullName] = useState('');
+  const [preferredRole, setPreferredRole] = useState('Senior UI/UX Architect');
+  const [selectedCountry, setSelectedCountry] = useState<CountryOption>(COUNTRIES[0]);
+  const [phoneDigits, setPhoneDigits] = useState('');
+  const [birthDate, setBirthDate] = useState('2000-01-01');
   const [password, setPassword] = useState('');
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [biometricVerified, setBiometricVerified] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionCompleted, setSubmissionCompleted] = useState(false);
 
-  // Password rules validation
-  const ruleLength = password.length >= 12;
-  const ruleBangla = /[\u0980-\u09FF]/.test(password); // Contains Bengali character
-  const ruleNoE = !/[eE]/.test(password); // No 'e' or 'E'
-  const ruleEmoji = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u.test(password); // Food/emoji
-  
-  // Sum of digits in password equals 42
-  const numbersInPass = password.match(/\d/g)?.map(Number) || [];
-  const sumOfNumbers = numbersInPass.reduce((acc, curr) => acc + curr, 0);
-  const ruleSum42 = sumOfNumbers === 42;
+  // Retro Chaos mode legacy states
+  const [rawChaosName, setRawChaosName] = useState('');
+  const [chaosPhone, setChaosPhone] = useState<number>(5551234567);
 
-  const allPasswordValid = ruleLength && ruleBangla && ruleNoE && ruleEmoji && ruleSum42;
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    playSound('beep');
-    onFormAction();
-    const val = e.target.value;
-    // Spongebob case logic: alternate lower and upper randomly
-    const sponge = val
-      .split('')
-      .map((char, i) => (i % 2 === 0 ? char.toLowerCase() : char.toUpperCase()))
-      .join('');
-    setRawName(sponge);
+  // Calculate password strength mathematically
+  const calculatePasswordStrength = (pass: string) => {
+    let score = 0;
+    if (pass.length >= 8) score += 25;
+    if (pass.length >= 12) score += 15;
+    if (/[A-Z]/.test(pass)) score += 20;
+    if (/[0-9]/.test(pass)) score += 20;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 20;
+    return Math.min(100, score);
   };
 
-  const spinBirthday = () => {
+  const passwordScore = calculatePasswordStrength(password);
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return { text: 'Empty', color: 'bg-gray-700 text-gray-400' };
+    if (score < 40) return { text: 'Weak', color: 'bg-red-500/20 text-red-400 border-red-500/30' };
+    if (score < 75) return { text: 'Balanced', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' };
+    return { text: 'Cryptographic Grade', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' };
+  };
+
+  const strengthMeta = getStrengthLabel(passwordScore);
+
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    playSound('beep');
+    onFormAction();
+    if (currentStep < 3) {
+      setCurrentStep((prev) => prev + 1);
+    } else {
+      handleFinalSubmit();
+    }
+  };
+
+  const handleFinalSubmit = () => {
+    playSound('win');
+    onFormAction();
+    setIsSubmitting(true);
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmissionCompleted(true);
+      setTimeout(() => {
+        onSuccessSubmit();
+      }, 900);
+    }, 1200);
+  };
+
+  const handleSimulateBiometric = () => {
     playSound('coin');
     onFormAction();
-    setIsSpinning(true);
-    let spins = 0;
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    const interval = setInterval(() => {
-      setBirthDay(Math.floor(Math.random() * 31) + 1);
-      setBirthMonth(months[Math.floor(Math.random() * months.length)]);
-      setBirthYear(Math.floor(Math.random() * 110) + 1915);
-      spins++;
-      if (spins > 12) {
-        clearInterval(interval);
-        setIsSpinning(false);
-        playSound('win');
-      }
-    }, 80);
-  };
-
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    playSound('glitch');
-    onFormAction();
-    setPhoneNumber(Number(e.target.value));
-  };
-
-  const adjustPhone = (delta: number) => {
-    playSound('beep');
-    onFormAction();
-    setPhoneNumber((prev) => Math.max(0, Math.min(9999999999, prev + delta)));
-  };
-
-  const handleSubmitAttempt = (e: React.FormEvent) => {
-    e.preventDefault();
-    playSound('honk');
-    onFormAction();
-    setShowConfirmModal(true);
+    setBiometricVerified(true);
   };
 
   return (
-    <section className="bg-fuchsia-200 border-4 border-black p-5 shadow-[8px_8px_0px_#000] my-6 font-['Comic_Neue',cursive]">
-      <div className="bg-purple-900 text-yellow-300 p-2 border-2 border-black mb-4 flex items-center justify-between">
-        <h3 className="font-['Press_Start_2P',monospace] text-xs md:text-sm flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-red-400 animate-spin" />
-          THE WORLD&apos;S WORST REGISTRATION FORM
-        </h3>
-        <span className="text-[10px] bg-red-600 text-white font-mono px-2 py-0.5 font-black uppercase">
-          0% User Friendly
-        </span>
-      </div>
+    <section
+      id="creative-registration-showcase"
+      className="relative my-8 rounded-2xl overflow-hidden border border-neutral-800 bg-gradient-to-b from-[#0e0f17] via-[#121422] to-[#0a0a10] text-neutral-100 shadow-2xl transition-all duration-300"
+    >
+      {/* Ambient subtle glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <p className="text-xs font-bold text-gray-800 mb-4 bg-yellow-100 p-2 border border-black">
-        ℹ️ Please fill in all fields with utmost precision. Any mistake will result in public humiliation.
-      </p>
-
-      <form onSubmit={handleSubmitAttempt} className="space-y-5">
-        {/* 1. Name Input with auto-mocking case */}
-        <div className="bg-white p-3 border-2 border-black shadow-[3px_3px_0px_#000]">
-          <label className="block text-xs font-bold text-black uppercase mb-1">
-            1. Your Full Name (Auto-Sarcasm Enabled):
-          </label>
-          <input
-            type="text"
-            value={rawName}
-            onChange={handleNameChange}
-            placeholder="Type your name here..."
-            className="w-full bg-yellow-50 border-2 border-black p-2 font-mono text-sm tracking-wide focus:bg-pink-100 focus:outline-none"
-          />
-          <p className="text-[10px] text-gray-600 mt-1 italic">
-            Letters are automatically rearranged into mocking alternating case for your convenience.
-          </p>
-        </div>
-
-        {/* 2. Phone Number Range Slider */}
-        <div className="bg-white p-3 border-2 border-black shadow-[3px_3px_0px_#000]">
-          <div className="flex justify-between items-center mb-1">
-            <label className="text-xs font-bold text-black uppercase">
-              2. Phone Number (Precision Range Slider):
-            </label>
-            <span className="bg-black text-green-400 font-mono px-2 py-0.5 text-xs font-black">
-              {phoneNumber.toString().padStart(10, '0')}
-            </span>
+      {/* Top Header: Creative UI/UX Badge & Mode Toggle */}
+      <div className="border-b border-neutral-800/80 px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-neutral-900/40 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-600 p-[1.5px] shadow-md">
+            <div className="w-full h-full bg-neutral-950 rounded-[10px] flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+            </div>
           </div>
-          
-          <input
-            type="range"
-            min="0"
-            max="9999999999"
-            step="1"
-            value={phoneNumber}
-            onChange={handleSliderChange}
-            className="w-full accent-red-600 cursor-pointer my-2"
-          />
-
-          <div className="flex items-center justify-between gap-2 mt-1">
-            <span className="text-[10px] font-mono text-gray-500">Min: 0000000000</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => adjustPhone(-1)}
-                className="bg-gray-200 hover:bg-gray-300 text-black px-2 py-0.5 text-xs font-mono font-bold border border-black cursor-pointer"
-              >
-                -1
-              </button>
-              <button
-                type="button"
-                onClick={() => adjustPhone(+1)}
-                className="bg-gray-200 hover:bg-gray-300 text-black px-2 py-0.5 text-xs font-mono font-bold border border-black cursor-pointer"
-              >
-                +1
-              </button>
-              <button
-                type="button"
-                onClick={() => adjustPhone(Math.floor((Math.random() - 0.5) * 50000))}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black px-2 py-0.5 text-xs font-bold border border-black cursor-pointer"
-              >
-                Random Jitter
-              </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase font-mono tracking-widest font-black text-amber-400 bg-amber-950/40 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                Award-Winning Craft
+              </span>
+              <span className="text-xs text-neutral-400 font-mono hidden sm:inline">
+                Designed by Yasir Abed Rabbu
+              </span>
             </div>
-            <span className="text-[10px] font-mono text-gray-500">Max: 9999999999</span>
-          </div>
-          <p className="text-[10px] text-red-600 mt-1 font-bold">
-            ⚠️ Tip: Drag the slider until you hit your exact 10-digit number. Estimated time: 48 hours.
-          </p>
-        </div>
-
-        {/* 3. Birthday Slot Machine */}
-        <div className="bg-white p-3 border-2 border-black shadow-[3px_3px_0px_#000]">
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-xs font-bold text-black uppercase">
-              3. Date of Birth (Casino Slot Machine):
-            </label>
-            <span className="text-[10px] font-bold text-purple-700 font-mono">
-              Selected: {birthDay} {birthMonth} {birthYear}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 justify-center bg-black p-3 border-2 border-yellow-400 mb-2">
-            <div className="w-16 h-12 bg-white border-2 border-gray-400 flex items-center justify-center font-['Press_Start_2P',monospace] text-sm text-red-600 shadow-inner">
-              {birthDay}
-            </div>
-            <div className="w-20 h-12 bg-white border-2 border-gray-400 flex items-center justify-center font-['Press_Start_2P',monospace] text-sm text-blue-600 shadow-inner">
-              {birthMonth}
-            </div>
-            <div className="w-24 h-12 bg-white border-2 border-gray-400 flex items-center justify-center font-['Press_Start_2P',monospace] text-sm text-green-600 shadow-inner">
-              {birthYear}
-            </div>
-
-            <button
-              type="button"
-              disabled={isSpinning}
-              onClick={spinBirthday}
-              className="bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black px-4 py-2 font-bold text-xs border-2 border-black shadow-[2px_2px_0px_#fff] cursor-pointer flex items-center gap-1 active:translate-x-0.5 active:translate-y-0.5"
-            >
-              <Dices className="w-4 h-4 animate-spin" />
-              {isSpinning ? 'SPINNING...' : 'SPIN FOR BIRTHDAY!'}
-            </button>
-          </div>
-          <p className="text-[10px] text-gray-600">
-            Keep rolling until the universe blesses you with your actual birth date.
-          </p>
-        </div>
-
-        {/* 4. Password with Ridiculous Rules */}
-        <div className="bg-white p-3 border-2 border-black shadow-[3px_3px_0px_#000]">
-          <label className="block text-xs font-bold text-black uppercase mb-1">
-            4. Ultra-Secure Password (The Impossible Gauntlet):
-          </label>
-          <input
-            type="text"
-            value={password}
-            onChange={(e) => {
-              playSound('beep');
-              setPassword(e.target.value);
-            }}
-            placeholder="Type your password..."
-            className="w-full bg-yellow-50 border-2 border-black p-2 font-mono text-sm tracking-widest focus:bg-lime-50 focus:outline-none mb-2"
-          />
-
-          <div className="space-y-1 font-mono text-[11px] bg-gray-50 p-2 border border-gray-300">
-            <div className={`flex items-center gap-1.5 ${ruleLength ? 'text-green-700 font-bold' : 'text-red-600'}`}>
-              {ruleLength ? '✓' : '✗'} Rule 1: Minimum 12 characters ({password.length}/12)
-            </div>
-            <div className={`flex items-center gap-1.5 ${ruleBangla ? 'text-green-700 font-bold' : 'text-red-600'}`}>
-              {ruleBangla ? '✓' : '✗'} Rule 2: Must contain at least one Bengali letter (e.g., ক, খ, গ, আ)
-            </div>
-            <div className={`flex items-center gap-1.5 ${ruleNoE ? 'text-green-700 font-bold' : 'text-red-600'}`}>
-              {ruleNoE ? '✓' : '✗'} Rule 3: Must NOT contain the letter &apos;E&apos; or &apos;e&apos; (Strictly Banned!)
-            </div>
-            <div className={`flex items-center gap-1.5 ${ruleEmoji ? 'text-green-700 font-bold' : 'text-red-600'}`}>
-              {ruleEmoji ? '✓' : '✗'} Rule 4: Must contain at least one emoji (e.g., 🍕, 🚀, 💀)
-            </div>
-            <div className={`flex items-center gap-1.5 ${ruleSum42 ? 'text-green-700 font-bold' : 'text-red-600'}`}>
-              {ruleSum42 ? '✓' : '✗'} Rule 5: The sum of all numbers in the password MUST equal exactly 42 (Current sum: {sumOfNumbers})
-            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+              <span>The Creative UI / UX Registration Experience</span>
+            </h3>
           </div>
         </div>
 
-        {/* 5. Terms and Conditions (Jumps away when unchecked) */}
-        <div className="bg-yellow-300 p-3 border-2 border-black shadow-[3px_3px_0px_#000]">
-          <label className="flex items-start gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={agreeTerms}
-              onChange={(e) => {
-                playSound(e.target.checked ? 'coin' : 'error');
-                setAgreeTerms(e.target.checked);
-              }}
-              className="mt-0.5 w-4 h-4 accent-red-600 cursor-pointer"
-            />
-            <span className="text-xs font-bold text-black">
-              I certify that I have read the 4,200-page terms of service and hereby surrender my firstborn child, my Wi-Fi router password, and my dignity to this website.
-            </span>
-          </label>
-        </div>
-
-        {/* Submit Button */}
-        <div className="text-center pt-2">
+        {/* Mode Switcher */}
+        <div className="flex items-center gap-1.5 bg-neutral-950/80 border border-neutral-800 p-1 rounded-xl text-xs font-medium">
           <button
-            type="submit"
-            className="w-full md:w-auto bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400 hover:from-red-500 hover:to-yellow-300 text-white font-['Press_Start_2P',monospace] text-xs md:text-sm py-4 px-8 border-4 border-black shadow-[6px_6px_0px_#000] active:translate-x-1 active:translate-y-1 cursor-pointer transition-transform"
+            type="button"
+            onClick={() => {
+              playSound('click');
+              setDesignMode('creative');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              designMode === 'creative'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-neutral-950 font-bold shadow-sm'
+                : 'text-neutral-400 hover:text-white'
+            }`}
           >
-            🔥 SUBMIT APPLICATION TO OBLIVION 🔥
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Creative Studio</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              playSound('glitch');
+              setDesignMode('retro');
+            }}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              designMode === 'retro'
+                ? 'bg-red-700 text-yellow-300 font-mono font-bold'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5 text-red-400" />
+            <span>Classic Chaos</span>
           </button>
         </div>
-      </form>
+      </div>
 
-      {/* Confirmation Trick Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-black p-5 max-w-sm w-full shadow-[10px_10px_0px_#ff0055] font-['Comic_Neue',cursive]">
-            <div className="bg-red-600 text-white p-2 font-bold text-center border-2 border-black mb-3">
-              CONFIRMATION TRAP
+      {designMode === 'retro' ? (
+        /* Retro Chaos Fallback with Bad Sliders for Nostalgia */
+        <div className="p-6 bg-fuchsia-950/50 border-t border-red-500 font-mono text-xs space-y-4">
+          <div className="p-3 bg-red-900/60 border border-red-500 text-red-200">
+            ⚠️ <strong>NOSTALGIC CHAOS MODE ACTIVE:</strong> You are experiencing the unoptimized slider version. Switch back to &quot;Creative Studio&quot; for the professional UI/UX design.
+          </div>
+          <div>
+            <label className="block text-yellow-300 font-bold mb-1">
+              Sarcastic Name Input:
+            </label>
+            <input
+              type="text"
+              value={rawChaosName}
+              onChange={(e) => {
+                setRawChaosName(
+                  e.target.value
+                    .split('')
+                    .map((c, i) => (i % 2 === 0 ? c.toLowerCase() : c.toUpperCase()))
+                    .join('')
+                );
+              }}
+              placeholder="Type name here..."
+              className="w-full bg-neutral-900 border border-yellow-500 p-2 text-yellow-300 font-mono"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between text-yellow-300 mb-1">
+              <span>Phone Slider:</span>
+              <span className="font-bold">{chaosPhone}</span>
             </div>
-            <p className="text-sm font-bold text-black mb-4 text-center">
-              Are you sure you do NOT want to abort canceling your submission? Click &quot;Cancel&quot; to submit or &quot;OK&quot; to cancel!
-            </p>
-            <div className="flex gap-3 justify-center">
+            <input
+              type="range"
+              min="0"
+              max="9999999999"
+              value={chaosPhone}
+              onChange={(e) => setChaosPhone(Number(e.target.value))}
+              className="w-full accent-yellow-400"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playSound('win');
+              onSuccessSubmit();
+            }}
+            className="w-full py-2 bg-yellow-400 text-black font-bold border border-black cursor-pointer shadow-md"
+          >
+            Submit in Chaos Mode
+          </button>
+        </div>
+      ) : (
+        /* Award-Winning Creative UI/UX Form Layout */
+        <div className="p-4 sm:p-8 space-y-6">
+          {/* Multi-Step Indicator */}
+          <div className="max-w-2xl mx-auto">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 relative">
+              {/* Step 1 */}
               <button
                 type="button"
-                onClick={() => {
-                  playSound('win');
-                  setShowConfirmModal(false);
-                  onSuccessSubmit();
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 font-bold border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer"
+                onClick={() => setCurrentStep(1)}
+                className={`flex items-center gap-2 p-2 sm:p-3 rounded-xl border text-left transition-all ${
+                  currentStep === 1
+                    ? 'border-amber-400/80 bg-amber-500/10 text-white'
+                    : currentStep > 1
+                    ? 'border-emerald-500/40 bg-emerald-500/5 text-emerald-300'
+                    : 'border-neutral-800 bg-neutral-900/30 text-neutral-500'
+                }`}
               >
-                Cancel (Submits Form)
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    currentStep === 1
+                      ? 'bg-amber-400 text-neutral-950'
+                      : currentStep > 1
+                      ? 'bg-emerald-500 text-neutral-950'
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  {currentStep > 1 ? '✓' : '1'}
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-xs font-semibold">Identity</div>
+                  <div className="text-[10px] text-neutral-400">Profile & Role</div>
+                </div>
               </button>
+
+              {/* Step 2 */}
               <button
                 type="button"
-                onClick={() => {
-                  playSound('error');
-                  setShowConfirmModal(false);
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 font-bold border-2 border-black shadow-[2px_2px_0px_#000] cursor-pointer"
+                onClick={() => setCurrentStep(2)}
+                className={`flex items-center gap-2 p-2 sm:p-3 rounded-xl border text-left transition-all ${
+                  currentStep === 2
+                    ? 'border-amber-400/80 bg-amber-500/10 text-white'
+                    : currentStep > 2
+                    ? 'border-emerald-500/40 bg-emerald-500/5 text-emerald-300'
+                    : 'border-neutral-800 bg-neutral-900/30 text-neutral-500'
+                }`}
               >
-                OK (Cancels Everything)
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    currentStep === 2
+                      ? 'bg-amber-400 text-neutral-950'
+                      : currentStep > 2
+                      ? 'bg-emerald-500 text-neutral-950'
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  {currentStep > 2 ? '✓' : '2'}
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-xs font-semibold">Contact</div>
+                  <div className="text-[10px] text-neutral-400">Phone & DOB</div>
+                </div>
+              </button>
+
+              {/* Step 3 */}
+              <button
+                type="button"
+                onClick={() => setCurrentStep(3)}
+                className={`flex items-center gap-2 p-2 sm:p-3 rounded-xl border text-left transition-all ${
+                  currentStep === 3
+                    ? 'border-amber-400/80 bg-amber-500/10 text-white'
+                    : 'border-neutral-800 bg-neutral-900/30 text-neutral-500'
+                }`}
+              >
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    currentStep === 3
+                      ? 'bg-amber-400 text-neutral-950'
+                      : 'bg-neutral-800 text-neutral-400'
+                  }`}
+                >
+                  3
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-xs font-semibold">Security</div>
+                  <div className="text-[10px] text-neutral-400">Credentials</div>
+                </div>
               </button>
             </div>
           </div>
+
+          {/* Form Body */}
+          <form onSubmit={handleNextStep} className="max-w-2xl mx-auto space-y-6">
+            {/* STEP 1: IDENTITY & PROFILE */}
+            {currentStep === 1 && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="border-b border-neutral-800 pb-3">
+                  <h4 className="text-sm font-semibold text-neutral-200">Personal Identity &amp; Aesthetic Persona</h4>
+                  <p className="text-xs text-neutral-400">Provide your verified credentials to enter the official registry.</p>
+                </div>
+
+                {/* Full Name Input */}
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-name`} className="block text-xs font-medium text-neutral-300">
+                    Full Legal Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input
+                      id={`${formId}-name`}
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => {
+                        onFormAction();
+                        setFullName(e.target.value);
+                      }}
+                      placeholder="e.g. Yasir Abed Rabbu"
+                      className="w-full bg-neutral-950/70 border border-neutral-800 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Professional Role Selector */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-neutral-300">
+                    Primary Creative Specialization
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {[
+                      'Principal UI/UX Designer',
+                      'Full-Stack Systems Architect',
+                      'Chaos Experience Critic',
+                      'Digital Typography Enthusiast',
+                    ].map((role) => (
+                      <button
+                        type="button"
+                        key={role}
+                        onClick={() => {
+                          playSound('click');
+                          setPreferredRole(role);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                          preferredRole === role
+                            ? 'border-amber-400 bg-amber-500/10 text-amber-200 font-semibold shadow-xs'
+                            : 'border-neutral-800 bg-neutral-950/50 text-neutral-400 hover:border-neutral-700'
+                        }`}
+                      >
+                        <span>{role}</span>
+                        {preferredRole === role && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: CONTACT & LOCATION */}
+            {currentStep === 2 && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="border-b border-neutral-800 pb-3">
+                  <h4 className="text-sm font-semibold text-neutral-200">Contact Channels &amp; Verification</h4>
+                  <p className="text-xs text-neutral-400">Streamlined international routing with zero friction.</p>
+                </div>
+
+                {/* Phone Number with International Country Selector */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-neutral-300">
+                    Mobile Direct Terminal
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedCountry.code}
+                      onChange={(e) => {
+                        const found = COUNTRIES.find((c) => c.code === e.target.value);
+                        if (found) setSelectedCountry(found);
+                      }}
+                      className="bg-neutral-950/70 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none"
+                    >
+                      {COUNTRIES.map((c) => (
+                        <option key={c.code} value={c.code} className="bg-neutral-900 text-white">
+                          {c.flag} {c.code} ({c.dial})
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                      <input
+                        type="tel"
+                        required
+                        value={phoneDigits}
+                        onChange={(e) => {
+                          onFormAction();
+                          setPhoneDigits(e.target.value.replace(/[^\d]/g, ''));
+                        }}
+                        placeholder="1712-345678"
+                        className="w-full bg-neutral-950/70 border border-neutral-800 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-neutral-400 font-mono">
+                    Routing: {selectedCountry.dial} {phoneDigits || '...'}
+                  </span>
+                </div>
+
+                {/* Date of Birth Picker */}
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-dob`} className="block text-xs font-medium text-neutral-300">
+                    Date of Birth
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input
+                      id={`${formId}-dob`}
+                      type="date"
+                      required
+                      value={birthDate}
+                      onChange={(e) => {
+                        onFormAction();
+                        setBirthDate(e.target.value);
+                      }}
+                      className="w-full bg-neutral-950/70 border border-neutral-800 focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: SECURITY & BIOMETRIC CONFIRMATION */}
+            {currentStep === 3 && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="border-b border-neutral-800 pb-3">
+                  <h4 className="text-sm font-semibold text-neutral-200">Cryptographic Security &amp; Biometrics</h4>
+                  <p className="text-xs text-neutral-400">Enterprise-grade credentials with live entropy evaluation.</p>
+                </div>
+
+                {/* Password Input with live strength */}
+                <div className="space-y-2">
+                  <label htmlFor={`${formId}-password`} className="block text-xs font-medium text-neutral-300">
+                    Master Encryption Key / Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input
+                      id={`${formId}-password`}
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => {
+                        onFormAction();
+                        setPassword(e.target.value);
+                      }}
+                      placeholder="Minimum 12 characters, symbols, numbers"
+                      className="w-full bg-neutral-950/70 border border-neutral-800 focus:border-amber-400 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-amber-400/20 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Password Strength Meter */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">Security Entropy</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${strengthMeta.color}`}>
+                        {strengthMeta.text} ({passwordScore}%)
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-emerald-400 transition-all duration-300 rounded-full"
+                        style={{ width: `${passwordScore}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Biometric Scan Simulation */}
+                <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-950/60 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-all ${
+                        biometricVerified
+                          ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-400'
+                          : 'bg-neutral-900 border-neutral-700 text-neutral-400'
+                      }`}
+                    >
+                      <Fingerprint className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-white">Biometric Passkey Validation</div>
+                      <div className="text-[11px] text-neutral-400">
+                        {biometricVerified ? 'Verified instantly via client hardware key' : 'Tap to simulate WebAuthn passkey'}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSimulateBiometric}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all cursor-pointer ${
+                      biometricVerified
+                        ? 'bg-emerald-500 text-neutral-950 font-bold border-emerald-400'
+                        : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border-neutral-700'
+                    }`}
+                  >
+                    {biometricVerified ? 'Verified ✓' : 'Scan Fingerprint'}
+                  </button>
+                </div>
+
+                {/* Terms agreement */}
+                <label className="flex items-center gap-2.5 text-xs text-neutral-300 cursor-pointer select-none pt-1">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={termsAgreed}
+                    onChange={(e) => setTermsAgreed(e.target.checked)}
+                    className="w-4 h-4 rounded border-neutral-700 accent-amber-400"
+                  />
+                  <span>
+                    I accept the creative design standards and certify survival of this website.
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {/* Navigation / Action Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
+              {currentStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep((prev) => prev - 1)}
+                  className="px-4 py-2 text-xs font-medium text-neutral-400 hover:text-white rounded-lg border border-neutral-800 hover:bg-neutral-900 transition-all cursor-pointer"
+                >
+                  ← Previous
+                </button>
+              ) : (
+                <div />
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting || submissionCompleted}
+                className="px-6 py-2.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-neutral-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Processing Credentials...</span>
+                  </>
+                ) : submissionCompleted ? (
+                  <>
+                    <Award className="w-4 h-4 text-neutral-950" />
+                    <span>Certified! Opening Diploma...</span>
+                  </>
+                ) : currentStep < 3 ? (
+                  <>
+                    <span>Continue to Step {currentStep + 1}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Complete &amp; Claim Guinness Certificate</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </section>

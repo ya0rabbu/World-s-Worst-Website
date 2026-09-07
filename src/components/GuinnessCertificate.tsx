@@ -60,19 +60,42 @@ export const GuinnessCertificate: React.FC<GuinnessCertificateProps> = ({
             </div>
           </div>
 
+          {/* Official Creator & Architect Credits */}
+          <div className="my-3 py-2 px-3 bg-amber-100/80 border-2 border-yellow-700/80 rounded shadow-inner text-center font-mono">
+            <div className="flex items-center justify-center gap-1.5 text-xs text-yellow-900 font-black tracking-wider uppercase">
+              <Sparkles className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+              <span>OFFICIAL ARCHITECT &amp; MASTER CREDENTIALS</span>
+              <Sparkles className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+            </div>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-4 text-xs font-serif font-bold text-gray-900">
+              <span className="bg-yellow-300/80 px-2.5 py-0.5 border border-yellow-700 rounded shadow-xs">
+                🎨 Design by <span className="text-red-900 font-black underline">Yasir Abed Rabbu</span>
+              </span>
+              <span className="bg-yellow-300/80 px-2.5 py-0.5 border border-yellow-700 rounded shadow-xs">
+                💻 Developed by <span className="text-purple-900 font-black underline">Yasir</span>
+              </span>
+            </div>
+          </div>
+
           {/* Signatures */}
-          <div className="grid grid-cols-2 gap-4 mt-6 pt-3 border-t border-yellow-700 text-xs text-gray-700">
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-3 border-t-2 border-dashed border-yellow-700 text-xs text-gray-800">
             <div>
-              <div className="font-['Comic_Neue',cursive] font-bold text-base text-blue-800 italic underline">
-                Dr. Bad UI Designer
+              <div className="font-['Comic_Neue',cursive] font-black text-base text-blue-900 italic underline tracking-wide">
+                Yasir Abed Rabbu
               </div>
-              <div className="text-[10px] uppercase font-mono text-gray-600">Chief Chaos Architect</div>
+              <div className="text-[10px] uppercase font-mono font-bold text-yellow-900">
+                Design by Yasir Abed Rabbu
+              </div>
+              <div className="text-[9px] text-gray-600 font-mono">Executive UI / UX Director</div>
             </div>
             <div>
-              <div className="font-['Comic_Neue',cursive] font-bold text-base text-red-800 italic underline">
-                Internet Explorer 6.0
+              <div className="font-['Comic_Neue',cursive] font-black text-base text-purple-900 italic underline tracking-wide">
+                Yasir
               </div>
-              <div className="text-[10px] uppercase font-mono text-gray-600">President of Broken CSS</div>
+              <div className="text-[10px] uppercase font-mono font-bold text-yellow-900">
+                Developed by Yasir
+              </div>
+              <div className="text-[9px] text-gray-600 font-mono">Lead Core Systems Architect</div>
             </div>
           </div>
         </div>

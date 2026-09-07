@@ -191,7 +191,7 @@ export const BangladeshViralNews: React.FC<BangladeshViralNewsProps> = ({
           <span>ব্রেকিং নিউজ</span>
         </div>
         <div className="whitespace-nowrap overflow-x-auto scrollbar-none py-0.5 animate-marquee text-xs">
-          🚨 ফার্মগেটে যানজটে বাসর রাত কাটালেন বরযাত্রীরা! &bull; 🍗 কাচ্চির আলু কম পড়ায় বিয়ে বাড়িতে তুমুল সংঘর্ষ! &bull; 📸 পদ্মা সেতুতে সেলফি স্টিক দিয়ে ড্রোন ভূপাতিত! &bull; ☕ টং দোকানে ৭ কাপ মালাই চা খেয়ে আইএমএফ সমস্যা সমাধান! &bull; 📩 সব মতামত সরাসরি {TARGET_GMAIL} এ পাঠানো হচ্ছে!
+          🚨 ফার্মগেটে যানজটে বাসর রাত কাটালেন বরযাত্রীরা! &bull; 🍗 কাচ্চির আলু কম পড়ায় বিয়ে বাড়িতে তুমুল সংঘর্ষ! &bull; 📸 পদ্মা সেতুতে সেলফি স্টিক দিয়ে ড্রোন ভূপাতিত! &bull; ☕ টং দোকানে ৭ কাপ মালাই চা খেয়ে আইএমএফ সমস্যা সমাধান! &bull; 📩 সব মতামত সরাসরি ক্রিয়েটরের ইনবক্সে পাঠানো হচ্ছে!
         </div>
       </div>
 
@@ -232,10 +232,10 @@ export const BangladeshViralNews: React.FC<BangladeshViralNewsProps> = ({
               onOpenFeedbackModal();
             }}
             className="bg-purple-900 hover:bg-purple-800 text-cyan-300 border-2 border-cyan-400 px-3.5 py-2 font-mono font-bold text-xs flex items-center gap-1.5 shadow-[3px_3px_0px_#000] cursor-pointer active:scale-95 transition-all"
-            title={`Send your reviews directly to ${TARGET_GMAIL}`}
+            title="Send your reviews directly to Creator Inbox"
           >
             <Mail className="w-3.5 h-3.5 text-yellow-300" />
-            <span>মতামত পাঠান ({TARGET_GMAIL})</span>
+            <span>মতামত পাঠান (Developer Mailbox)</span>
           </button>
         </div>
       </div>
@@ -429,7 +429,7 @@ export const BangladeshViralNews: React.FC<BangladeshViralNewsProps> = ({
               নতুন কোনো ভাইরাল বাংলাদেশি নিউজ বা ঘটনা যোগ করতে চান?
             </div>
             <div className="text-gray-400 text-[11px]">
-              আপনার মতামত ও স্টোরি আইডিয়া সরাসরি ইয়াসির আবেদ রাব্বুর জিমেইলে (<span className="text-white font-bold">{TARGET_GMAIL}</span>) পৌঁছে যাবে!
+              আপনার মতামত ও স্টোরি আইডিয়া সরাসরি ইয়াসির আবেদ রাব্বুর অফিসিয়াল ক্রিয়েটর ইনবক্সে পৌঁছে যাবে!
             </div>
           </div>
         </div>
